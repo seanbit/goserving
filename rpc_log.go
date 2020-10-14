@@ -102,9 +102,6 @@ func (this *serverlogger) PostReadRequest(ctx context.Context, r *protocol.Messa
 	if r.ServicePath == "" && r.ServiceMethod == "" {
 		return nil
 	}
-	if e != nil {
-		return e
-	}
 	this.logPrint(ctx, r, MsgTypeReq, e)
 	return nil
 }
@@ -117,8 +114,8 @@ func (this *serverlogger) PostReadRequest(ctx context.Context, r *protocol.Messa
 //}
 
 func (this *serverlogger) PostWriteResponse(ctx context.Context, req *protocol.Message, resp *protocol.Message, e error) error {
-	if e != nil {
-		return e
+	if req.ServicePath == "" && req.ServiceMethod == "" {
+		return nil
 	}
 	this.logPrint(ctx, resp, MsgTypeResp, e)
 	return nil
