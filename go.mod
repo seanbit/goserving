@@ -9,7 +9,7 @@ require (
 	github.com/sean-tech/gokit v1.2.9 // indirect
 	github.com/seanbit/gokit v1.0.1
 	github.com/sirupsen/logrus v1.2.0
-	github.com/smallnest/rpcx/v5 v5.7.6
+	github.com/smallnest/rpcx v0.0.0-20200924044220-f2cdd4dea15a
 )
 
 replace google.golang.org/grpc => google.golang.org/grpc v1.26.0

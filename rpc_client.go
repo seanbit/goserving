@@ -6,8 +6,9 @@ import (
 	"crypto/x509"
 	"errors"
 	"github.com/docker/libkv/store"
-	"github.com/smallnest/rpcx/v5/client"
-	"github.com/smallnest/rpcx/v5/share"
+	"github.com/smallnest/rpcx/client"
+	"github.com/smallnest/rpcx/share"
+	"net"
 	"sync"
 	"time"
 )
@@ -26,6 +27,7 @@ func CreateClient(serviceName, serverName string) client.XClient {
 	option := createClientOption(serverName)
 	xclient := client.NewXClient(serviceName, client.Failover, client.RoundRobin, newDiscovery(serviceName), option)
 	xclient.GetPlugins().Add(ClientLogger)
+	xclient.GetPlugins().Add(&clientCloser{serviceName: serviceName})
 	clientMap.Store(serviceName, xclient)
 	return xclient
 }
@@ -40,6 +42,7 @@ func CreateP2pClient(serviceName, serverName string, addrs []string) client.XCli
 	option := createClientOption(serverName)
 	xclient := client.NewXClient(serviceName, client.Failover, client.RoundRobin, newP2PDiscovery(addrs), option)
 	xclient.GetPlugins().Add(ClientLogger)
+	xclient.GetPlugins().Add(&clientCloser{serviceName: serviceName})
 	p2pClientMap.Store(serviceName, xclient)
 	return xclient
 }
@@ -49,8 +52,7 @@ func createClientOption(serverName string) client.Option {
 	option.Heartbeat = true
 	option.HeartbeatInterval = time.Second
 	option.ConnectTimeout = _config.ReadTimeout
-	option.ReadTimeout = _config.ReadTimeout
-	option.WriteTimeout = _config.WriteTimeout
+	option.IdleTimeout = _config.ReadTimeout
 	if _config.TlsAuth {
 		//cert, err := tls.LoadX509KeyPair(_config.ServerPemPath, _config.ServerKeyPath)
 		cert, err := tls.X509KeyPair([]byte(_config.Tls.ServerCert), []byte(_config.Tls.ServerKey))
@@ -162,7 +164,16 @@ func P2pGo(serviceName, serverName string, addrs []string, ctx context.Context, 
 	return ClientGo(client, ctx, serviceMethod, args, reply, done)
 }
 
-
+type clientCloser struct {
+	serviceName string
+}
+// ClientConnectionClosePlugin is invoked when the connection is closing.
+func (this *clientCloser) ClientConnectionClose(net.Conn) error {
+	if _, ok := clientMap.Load(this.serviceName); ok {
+		clientMap.Delete(this.serviceName)
+	}
+	return nil
+}
 
 /**
  * client auth

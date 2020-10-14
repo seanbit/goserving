@@ -7,9 +7,8 @@ import (
 	"fmt"
 	"github.com/seanbit/gokit/foundation"
 	"github.com/sirupsen/logrus"
-	"github.com/smallnest/rpcx/v5/protocol"
-	"github.com/smallnest/rpcx/v5/share"
-	"net"
+	"github.com/smallnest/rpcx/protocol"
+	"github.com/smallnest/rpcx/share"
 	"reflect"
 	"sync"
 	"unicode"
@@ -19,9 +18,9 @@ import (
 type clientLogger struct {}
 var ClientLogger = &clientLogger{}
 
-func (this *clientLogger) DoPreCall(ctx context.Context, servicePath, serviceMethod string, args interface{}) error {
-	return nil
-}
+//func (this *clientLogger) DoPreCall(ctx context.Context, servicePath, serviceMethod string, args interface{}) error {
+//	return nil
+//}
 
 // PostCallPlugin is invoked after the client calls a server.
 func (this *clientLogger) DoPostCall(ctx context.Context, servicePath, serviceMethod string, args interface{}, reply interface{}, err error) error {
@@ -59,30 +58,25 @@ func (this *clientLogger) DoPostCall(ctx context.Context, servicePath, serviceMe
 	return nil
 }
 
-// ConnCreatedPlugin is invoked when the client connection has created.
-func (this *clientLogger) ConnCreated(conn net.Conn) (net.Conn, error) {
-	return conn, nil
-}
-
-// ClientConnectedPlugin is invoked when the client has connected the server.
-func (this *clientLogger) ClientConnected(conn net.Conn) (net.Conn, error) {
-	return conn, nil
-}
-
-// ClientConnectionClosePlugin is invoked when the connection is closing.
-func (this *clientLogger) ClientConnectionClose(net.Conn) error {
-	return nil
-}
-
-// ClientBeforeEncodePlugin is invoked when the message is encoded and sent.
-func (this *clientLogger) ClientBeforeEncode(*protocol.Message) error {
-	return nil
-}
-
-// ClientAfterDecodePlugin is invoked when the message is decoded.
-func (this *clientLogger) ClientAfterDecode(*protocol.Message) error {
-	return nil
-}
+//// ConnCreatedPlugin is invoked when the client connection has created.
+//func (this *clientLogger) ConnCreated(conn net.Conn) (net.Conn, error) {
+//	return conn, nil
+//}
+//
+//// ClientConnectedPlugin is invoked when the client has connected the server.
+//func (this *clientLogger) ClientConnected(conn net.Conn) (net.Conn, error) {
+//	return conn, nil
+//}
+//
+//// ClientBeforeEncodePlugin is invoked when the message is encoded and sent.
+//func (this *clientLogger) ClientBeforeEncode(*protocol.Message) error {
+//	return nil
+//}
+//
+//// ClientAfterDecodePlugin is invoked when the message is decoded.
+//func (this *clientLogger) ClientAfterDecode(*protocol.Message) error {
+//	return nil
+//}
 
 
 
@@ -105,6 +99,9 @@ func (this *serverlogger) Unregister(name string) error {
 }
 
 func (this *serverlogger) PostReadRequest(ctx context.Context, r *protocol.Message, e error) error {
+	if r.ServicePath == "" && r.ServiceMethod == "" {
+		return nil
+	}
 	if e != nil {
 		return e
 	}
@@ -112,12 +109,12 @@ func (this *serverlogger) PostReadRequest(ctx context.Context, r *protocol.Messa
 	return nil
 }
 
-func (this *serverlogger)PreHandleRequest(ctx context.Context, r *protocol.Message) error {
-	return nil
-}
-func (this *serverlogger) PreWriteResponse(ctx context.Context, req *protocol.Message, resp *protocol.Message) error {
-	return nil
-}
+//func (this *serverlogger)PreHandleRequest(ctx context.Context, r *protocol.Message) error {
+//	return nil
+//}
+//func (this *serverlogger) PreWriteResponse(ctx context.Context, req *protocol.Message, resp *protocol.Message) error {
+//	return nil
+//}
 
 func (this *serverlogger) PostWriteResponse(ctx context.Context, req *protocol.Message, resp *protocol.Message, e error) error {
 	if e != nil {
@@ -127,12 +124,12 @@ func (this *serverlogger) PostWriteResponse(ctx context.Context, req *protocol.M
 	return nil
 }
 
-func (this *serverlogger) PreWriteRequest(ctx context.Context) error {
-	return nil
-}
-func (this *serverlogger) PostWriteRequest(ctx context.Context, r *protocol.Message, e error) error {
-	return nil
-}
+//func (this *serverlogger) PreWriteRequest(ctx context.Context) error {
+//	return nil
+//}
+//func (this *serverlogger) PostWriteRequest(ctx context.Context, r *protocol.Message, e error) error {
+//	return nil
+//}
 
 func (this *serverlogger) logPrint(ctx context.Context, msg *protocol.Message, msgType MsgType, err error)  {
 	var traceId uint64 = 0
