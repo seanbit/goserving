@@ -105,7 +105,10 @@ func (this *serverlogger) Unregister(name string) error {
 }
 
 func (this *serverlogger) PostReadRequest(ctx context.Context, r *protocol.Message, e error) error {
-	this.logPrint("PostReadRequest", ctx, r, MsgTypeReq, e)
+	if e != nil {
+		return e
+	}
+	this.logPrint(ctx, r, MsgTypeReq, e)
 	return nil
 }
 
@@ -117,7 +120,10 @@ func (this *serverlogger) PreWriteResponse(ctx context.Context, req *protocol.Me
 }
 
 func (this *serverlogger) PostWriteResponse(ctx context.Context, req *protocol.Message, resp *protocol.Message, e error) error {
-	this.logPrint("PostWriteResponse", ctx, resp, MsgTypeResp, e)
+	if e != nil {
+		return e
+	}
+	this.logPrint(ctx, resp, MsgTypeResp, e)
 	return nil
 }
 
@@ -128,19 +134,26 @@ func (this *serverlogger) PostWriteRequest(ctx context.Context, r *protocol.Mess
 	return nil
 }
 
-func (this *serverlogger) logPrint(prefix string, ctx context.Context, msg *protocol.Message, msgType MsgType, err error)  {
+func (this *serverlogger) logPrint(ctx context.Context, msg *protocol.Message, msgType MsgType, err error)  {
 	var traceId uint64 = 0
 	var userName string = ""
 	if trace := GetTrace(ctx); trace != nil {
 		traceId = trace.TraceId
 		userName = trace.UserName
 	}
+	var info string
+	switch msgType {
+	case MsgTypeReq:
+		info = "service request read "
+	case MsgTypeResp:
+		info = "service request write "
+	}
 	resplog := log.WithFields(logrus.Fields{"traceId":traceId, "userName":userName, "msgPath":msg.ServicePath, "msgMethod":msg.ServiceMethod})
 	if err != nil {
 		if e, ok := err.(foundation.Error); ok {
-			resplog.Infof("service resp error:%d %s", e.Code(), e.Msg())
+			resplog.Infof("%s error:%d %s", info, e.Code(), e.Msg())
 		} else {
-			resplog.Infof("service resp error:%s", err.Error())
+			resplog.Infof("%s error:%s", info, err.Error())
 		}
 		if err.Error() != "" {
 			resplog.Error(err.Error())
@@ -148,7 +161,8 @@ func (this *serverlogger) logPrint(prefix string, ctx context.Context, msg *prot
 		return
 	}
 	data := this.paylodConvert(ctx, msg, msgType)
-	log.WithFields(logrus.Fields{"metadata":msg.Metadata, "payload":data}).Info("service resp success")
+
+	log.WithFields(logrus.Fields{"metadata":msg.Metadata, "payload":data}).Info(info + "success")
 }
 
 
