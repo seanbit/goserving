@@ -6,8 +6,8 @@ import (
 	"crypto/x509"
 	"errors"
 	"github.com/docker/libkv/store"
-	"github.com/smallnest/rpcx/client"
-	"github.com/smallnest/rpcx/share"
+	"github.com/smallnest/rpcx/v5/client"
+	"github.com/smallnest/rpcx/v5/share"
 	"sync"
 	"time"
 )
@@ -49,7 +49,8 @@ func createClientOption(serverName string) client.Option {
 	option.Heartbeat = true
 	option.HeartbeatInterval = time.Second
 	option.ConnectTimeout = _config.ReadTimeout
-	option.IdleTimeout = _config.ReadTimeout
+	option.ReadTimeout = _config.ReadTimeout
+	option.WriteTimeout = _config.WriteTimeout
 	if _config.TlsAuth {
 		//cert, err := tls.LoadX509KeyPair(_config.ServerPemPath, _config.ServerKeyPath)
 		cert, err := tls.X509KeyPair([]byte(_config.Tls.ServerCert), []byte(_config.Tls.ServerKey))

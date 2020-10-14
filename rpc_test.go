@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/smallnest/rpcx/client"
-	"github.com/smallnest/rpcx/server"
+	"github.com/smallnest/rpcx/v5/client"
+	"github.com/smallnest/rpcx/v5/server"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -47,7 +47,7 @@ func TestRpcServer(t *testing.T) {
 	//_rpc_testing = true
 	Serve(RpcConfig{
 		RunMode:              "debug",
-		RpcPort:              9001,
+		RpcPort:              9901,
 		RpcPerSecondConnIdle: 500,
 		ReadTimeout:          60 * time.Second,
 		WriteTimeout:         60 * time.Second,
@@ -97,7 +97,7 @@ func TestRpcServer(t *testing.T) {
 func TestP2pCall(t *testing.T) {
 	var user = new(UserInfo)
 	ctx, _ := TraceContext(context.Background(), 101, 11001, "testuser", "testrole")
-	if err := P2pCall("User", "", []string{"192.168.1.21:9001"}, ctx, "UserAdd",  &UserAddParameter{
+	if err := P2pCall("User", "", []string{"192.168.1.21:9901"}, ctx, "UserAdd",  &UserAddParameter{
 		UserName: "1237757@qq.com",
 		Password: "Aa123456",
 	}, user); err != nil {
