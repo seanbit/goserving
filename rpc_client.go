@@ -137,7 +137,7 @@ func ClientGo(client client.XClient, ctx context.Context, serviceMethod string, 
  */
 func Call(serviceName, serverName string, ctx context.Context, serviceMethod string, args interface{}, reply interface{}) error {
 	client := CreateClient(serviceName, serverName)
-	return ClientCall(client, ctx, serviceMethod, args, reply, )
+	return ClientCall(client, ctx, serviceMethod, args, reply)
 }
 
 /**
@@ -153,7 +153,7 @@ func Go(serviceName, serverName string, ctx context.Context, serviceMethod strin
  */
 func P2pCall(serviceName, serverName string, addrs []string, ctx context.Context, serviceMethod string, args interface{}, reply interface{}) error {
 	client := CreateP2pClient(serviceName, serverName, addrs)
-	return ClientCall(client, ctx, serviceMethod, args, reply, )
+	return ClientCall(client, ctx, serviceMethod, args, reply)
 }
 
 /**

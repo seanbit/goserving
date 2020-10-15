@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/smallnest/rpcx/protocol"
 	"github.com/smallnest/rpcx/share"
+	"net"
 	"reflect"
 	"sync"
 	"unicode"
@@ -18,12 +19,12 @@ import (
 type clientLogger struct {}
 var ClientLogger = &clientLogger{}
 
-//func (this *clientLogger) DoPreCall(ctx context.Context, servicePath, serviceMethod string, args interface{}) error {
-//	return nil
-//}
+func (this *clientLogger) PreCall(ctx context.Context, servicePath, serviceMethod string, args interface{}) error {
+	return nil
+}
 
 // PostCallPlugin is invoked after the client calls a server.
-func (this *clientLogger) DoPostCall(ctx context.Context, servicePath, serviceMethod string, args interface{}, reply interface{}, err error) error {
+func (this *clientLogger) PostCall(ctx context.Context, servicePath, serviceMethod string, args interface{}, reply interface{}, err error) error {
 	var traceId uint64 = 0
 	var userName string = ""
 	if trace := GetTrace(ctx); trace != nil {
@@ -58,25 +59,25 @@ func (this *clientLogger) DoPostCall(ctx context.Context, servicePath, serviceMe
 	return nil
 }
 
-//// ConnCreatedPlugin is invoked when the client connection has created.
-//func (this *clientLogger) ConnCreated(conn net.Conn) (net.Conn, error) {
-//	return conn, nil
-//}
-//
-//// ClientConnectedPlugin is invoked when the client has connected the server.
-//func (this *clientLogger) ClientConnected(conn net.Conn) (net.Conn, error) {
-//	return conn, nil
-//}
-//
-//// ClientBeforeEncodePlugin is invoked when the message is encoded and sent.
-//func (this *clientLogger) ClientBeforeEncode(*protocol.Message) error {
-//	return nil
-//}
-//
-//// ClientAfterDecodePlugin is invoked when the message is decoded.
-//func (this *clientLogger) ClientAfterDecode(*protocol.Message) error {
-//	return nil
-//}
+// ConnCreatedPlugin is invoked when the client connection has created.
+func (this *clientLogger) ConnCreated(conn net.Conn) (net.Conn, error) {
+	return conn, nil
+}
+
+// ClientConnectedPlugin is invoked when the client has connected the server.
+func (this *clientLogger) ClientConnected(conn net.Conn) (net.Conn, error) {
+	return conn, nil
+}
+
+// ClientBeforeEncodePlugin is invoked when the message is encoded and sent.
+func (this *clientLogger) ClientBeforeEncode(*protocol.Message) error {
+	return nil
+}
+
+// ClientAfterDecodePlugin is invoked when the message is decoded.
+func (this *clientLogger) ClientAfterDecode(*protocol.Message) error {
+	return nil
+}
 
 
 
@@ -138,9 +139,9 @@ func (this *serverlogger) logPrint(ctx context.Context, msg *protocol.Message, m
 	var info string
 	switch msgType {
 	case MsgTypeReq:
-		info = "service request read "
+		info = "service request read"
 	case MsgTypeResp:
-		info = "service request write "
+		info = "service request write"
 	}
 	resplog := log.WithFields(logrus.Fields{"traceId":traceId, "userName":userName, "msgPath":msg.ServicePath, "msgMethod":msg.ServiceMethod})
 	if err != nil {
@@ -155,8 +156,7 @@ func (this *serverlogger) logPrint(ctx context.Context, msg *protocol.Message, m
 		return
 	}
 	data := this.paylodConvert(ctx, msg, msgType)
-
-	log.WithFields(logrus.Fields{"metadata":msg.Metadata, "payload":data}).Info(info + "success")
+	resplog.WithFields(logrus.Fields{"metadata":msg.Metadata, "payload":data}).Info(info + "success")
 }
 
 

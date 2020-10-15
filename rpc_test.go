@@ -2,11 +2,14 @@ package serving
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
+	"github.com/seanbit/gokit/foundation"
 	"github.com/smallnest/rpcx/client"
 	"github.com/smallnest/rpcx/server"
 	"io/ioutil"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -26,6 +29,9 @@ type userServiceImpl struct {
 var UserService = &userServiceImpl{}
 
 func (this *userServiceImpl) UserAdd(ctx context.Context, parameter *UserAddParameter, user *UserInfo) error {
+	if parameter.UserName != "asd" {
+		return foundation.NewError(errors.New("asd"), 11001, "")
+	}
 	*user = UserInfo{
 		UserId:   1230090123,
 		UserName: parameter.UserName,
@@ -36,11 +42,6 @@ func (this *userServiceImpl) UserAdd(ctx context.Context, parameter *UserAddPara
 }
 
 func TestRpcServer(t *testing.T) {
-	//logging.Setup(logging.LogConfig{
-	//	RunMode: 		 "debug",
-	//	LogSavePath:     "/Users/sean/Desktop/",
-	//	LogPrefix:       "rpctest",
-	//})
 	ServerCertBytes, _ := ioutil.ReadFile("/Users/sean/Desktop/Go/secret/webkit/server1.pem")
 	ServerKeyBytes, _ := ioutil.ReadFile("/Users/sean/Desktop/Go/secret/webkit/server1.key")
 	CACertBytes, _ := ioutil.ReadFile("/Users/sean/Desktop/Go/secret/webkit/ca.pem")
@@ -82,7 +83,7 @@ func TestRpcServer(t *testing.T) {
 	//	UserName: "1237757@qq.com",
 	//	Password: "Aa123456",
 	//}, user); err != nil {
-	//	fmt.Printf("err---%s", err.Error())
+	//	fmt.Printf("err---%s", err.MyError())
 	//} else  {
 	//	fmt.Printf("user--%+v", user)
 	//}
@@ -106,6 +107,61 @@ func TestP2pCall(t *testing.T) {
 		fmt.Printf("user--%+v", user)
 	}
 }
+
+func TestCall(t *testing.T) {
+	ServerCertBytes, _ := ioutil.ReadFile("/Users/sean/Desktop/Go/secret/webkit/server2.pem")
+	ServerKeyBytes, _ := ioutil.ReadFile("/Users/sean/Desktop/Go/secret/webkit/server2.key")
+	CACertBytes, _ := ioutil.ReadFile("/Users/sean/Desktop/Go/secret/webkit/ca.pem")
+	//_rpc_testing = true
+	Serve(RpcConfig{
+		RunMode:              "debug",
+		RpcPort:              9903,
+		RpcPerSecondConnIdle: 500,
+		ReadTimeout:          60 * time.Second,
+		WriteTimeout:         60 * time.Second,
+		TokenAuth: 			  false,
+		Token: &TokenConfig{
+			TokenSecret:          "asdasd",
+			TokenIssuer:          "zhsa",
+		},
+		TlsAuth:              false,
+		Tls: &TlsConfig{
+			ServerCert:		  string(ServerCertBytes),
+			ServerKey:		  string(ServerKeyBytes),
+			CACert:			  string(CACertBytes),
+			CACommonName:			  "ex.sean",
+		},
+		Registry: &EtcdRegistry{
+			EtcdRpcUserName: "root",
+			EtcdRpcPassword: "etcd.user.root.pwd",
+			EtcdRpcBasePath: "sean.tech/webkit/serving/rpc",
+			EtcdEndPoints:   []string{"127.0.0.1:2379"},
+		},
+	},
+		nil, []Registry{Registry{
+			Name:     "User",
+			Rcvr:     new(userServiceImpl),
+			Metadata: "",
+		}}, true)
+	var user = new(UserInfo)
+	ctx, _ := TraceContext(context.Background(), 101, 11001, "testuser", "testrole")
+	if err := Call("User", "", ctx, "UserAdd", &UserAddParameter{
+		UserName: "1237757@qq.com",
+		Password: "Aa123456",
+	}, user); err != nil {
+		fmt.Printf("err-------:%+v\n", err)
+		fmt.Printf("err type-------:%+v\n", reflect.TypeOf(err))
+		if e, ok := foundation.ParseError(err); ok {
+			fmt.Println(e.Code())
+		}
+	} else  {
+		fmt.Printf("user--%+v\n", user)
+	}
+}
+
+
+
+
 
 
 func TestParameter(t *testing.T) {
