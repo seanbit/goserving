@@ -19,7 +19,7 @@ type BindContext interface {
 	Set(key string, value interface{})
 }
 
-func TraceBind(ctx BindContext, traceId, userId uint64, userName, userRole string) (*Trace, error) {
+func TraceBind(ctx BindContext, traceId, userId uint64, userName, userRole string) *Trace {
 	trace := &Trace{
 		TraceId:  traceId,
 		UserId:   userId,
@@ -27,17 +27,17 @@ func TraceBind(ctx BindContext, traceId, userId uint64, userName, userRole strin
 		UserRole: userRole,
 	}
 	ctx.Set(key_ctx_trace, trace)
-	return trace, nil
+	return trace
 }
 
-func TraceContext(ctx context.Context, traceId, userId uint64, userName, userRole string) (context.Context, error) {
+func TraceContext(ctx context.Context, traceId, userId uint64, userName, userRole string) context.Context {
 	trace := &Trace{
 		TraceId:  traceId,
 		UserId:   userId,
 		UserName: userName,
 		UserRole: userRole,
 	}
-	return context.WithValue(ctx, key_ctx_trace, trace), nil
+	return context.WithValue(ctx, key_ctx_trace, trace)
 }
 
 /**

@@ -97,7 +97,7 @@ func TestRpcServer(t *testing.T) {
 
 func TestP2pCall(t *testing.T) {
 	var user = new(UserInfo)
-	ctx, _ := TraceContext(context.Background(), 101, 11001, "testuser", "testrole")
+	ctx := TraceContext(context.Background(), 101, 11001, "testuser", "testrole")
 	if err := P2pCall("User", "", []string{"192.168.1.21:9901"}, ctx, "UserAdd",  &UserAddParameter{
 		UserName: "1237757@qq.com",
 		Password: "Aa123456",
@@ -144,7 +144,7 @@ func TestCall(t *testing.T) {
 			Metadata: "",
 		}}, true)
 	var user = new(UserInfo)
-	ctx, _ := TraceContext(context.Background(), 101, 11001, "testuser", "testrole")
+	ctx := TraceContext(context.Background(), 101, 11001, "testuser", "testrole")
 	if err := Call("User", "", ctx, "UserAdd", &UserAddParameter{
 		UserName: "1237757@qq.com",
 		Password: "Aa123456",
