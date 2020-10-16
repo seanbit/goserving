@@ -2,7 +2,6 @@ package serving
 
 import (
 	"context"
-	"github.com/seanbit/gokit/validate"
 )
 
 const (
@@ -27,9 +26,6 @@ func TraceBind(ctx BindContext, traceId, userId uint64, userName, userRole strin
 		UserName: userName,
 		UserRole: userRole,
 	}
-	if err := validate.ValidateParameter(trace); err != nil {
-		return nil, err
-	}
 	ctx.Set(key_ctx_trace, trace)
 	return trace, nil
 }
@@ -40,9 +36,6 @@ func TraceContext(ctx context.Context, traceId, userId uint64, userName, userRol
 		UserId:   userId,
 		UserName: userName,
 		UserRole: userRole,
-	}
-	if err := validate.ValidateParameter(trace); err != nil {
-		return nil, err
 	}
 	return context.WithValue(ctx, key_ctx_trace, trace), nil
 }
